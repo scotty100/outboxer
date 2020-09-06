@@ -1,4 +1,4 @@
-package outboxer
+package outboxer_server
 
 import (
 	"cloud.google.com/go/pubsub"

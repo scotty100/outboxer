@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"github.com/BenefexLtd/onehub-go-base/pkg/logging"
 	"github.com/BenefexLtd/onehub-go-base/pkg/mongo"
-	outboxer2 "io.benefexapps/outboxer/outboxer"
+	"io.benefexapps/outboxer/outboxer"
+	outboxer2 "io.benefexapps/outboxer/outboxer-server"
 	"time"
 
 	uuid "github.com/google/uuid"
@@ -14,9 +15,9 @@ import (
 func main() {
 	fmt.Println("Starting the application")
 
-	logger := logging.NewLogger("INFO", "outboxer", "1.0")
+	logger := logging.NewLogger("INFO", "outboxer-server", "1.0")
 	mongo := mongo.New("mongodb://localhost:27017/comments_default", 15, "comments_default", logger)
-	outboxRepo := &outboxer2.MongoOutboxRepo{
+	outboxRepo := &outboxer.MongoOutboxRepo{
 		Store:        mongo,
 		QueryMaxTime: 10,
 	}
@@ -45,10 +46,10 @@ func main() {
 
 }
 
-func addSomeOutboxMessages(or *outboxer2.MongoOutboxRepo) {
+func addSomeOutboxMessages(or *outboxer.MongoOutboxRepo) {
 
-	messages := make([]*outboxer2.Outbox, 3)
-	messages[0] = &outboxer2.Outbox{
+	messages := make([]*outboxer.Outbox, 3)
+	messages[0] = &outboxer.Outbox{
 		Id:                 uuid.New().String(),
 		AggregateId:        uuid.New().String(),
 		Version:            "1",
@@ -62,7 +63,7 @@ func addSomeOutboxMessages(or *outboxer2.MongoOutboxRepo) {
 		ExternalMessageId:  "",
 		WorkerId:           "",
 	}
-	messages[1] = &outboxer2.Outbox{
+	messages[1] = &outboxer.Outbox{
 		Id:                 uuid.New().String(),
 		AggregateId:        uuid.New().String(),
 		Version:            "1",
@@ -76,7 +77,7 @@ func addSomeOutboxMessages(or *outboxer2.MongoOutboxRepo) {
 		ExternalMessageId:  "",
 		WorkerId:           "",
 	}
-	messages[2] = &outboxer2.Outbox{
+	messages[2] = &outboxer.Outbox{
 		Id:                 uuid.New().String(),
 		AggregateId:        uuid.New().String(),
 		Version:            "1",
