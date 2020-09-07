@@ -13,7 +13,7 @@ type OutboxRepo interface {
 
 	GetNextOutbox(ctx context.Context, statuses []string) (Outbox, error)
 
-	SetMessageProcessed(ctx context.Context, id int64, status string, sentDateTime time.Time, externalMessageId string) error
+	SetMessageProcessed(ctx context.Context, id int64, status string, publishedDateTime time.Time, externalMessageId string) error
 
 	SetMessagePublishFailed(ctx context.Context, id int64, status string, retries int) error
 
@@ -31,9 +31,9 @@ type MongoOutboxRepo struct {
 //
 func (r *MongoOutboxRepo) GetNextOutbox(ctx context.Context, statuses []string) (Outbox, error) {
 
-	queryMaxtime := time.Duration(r.QueryMaxTime) * time.Second
-	options := &options.FindOneOptions{
-		MaxTime: &queryMaxtime,
+	queryMaxTime := time.Duration(r.QueryMaxTime) * time.Second
+	options := &options.FindOneAndUpdateOptions{
+		MaxTime: &queryMaxTime,
 	}
 	update := bson.M{
 		"$set": bson.M{"state": Publishing},
@@ -54,7 +54,7 @@ func (r *MongoOutboxRepo) GetNextOutbox(ctx context.Context, statuses []string) 
 	return outbox, nil
 }
 
-func (r *MongoOutboxRepo) SetMessageProcessed(ctx context.Context, id string, status int, publishedDateTime time.Time, externalMessageId string) error {
+func (r *MongoOutboxRepo) SetMessageProcessed(ctx context.Context, id int64, status string, publishedDateTime time.Time, externalMessageId string) error {
 
 	update := bson.M{
 		"$set": bson.M{
@@ -68,7 +68,7 @@ func (r *MongoOutboxRepo) SetMessageProcessed(ctx context.Context, id string, st
 	return err
 }
 
-func (r *MongoOutboxRepo) SetMessagePublishFailed(ctx context.Context, id string, status string, retries int) error {
+func (r *MongoOutboxRepo) SetMessagePublishFailed(ctx context.Context, id int64, status string, retries int) error {
 
 	update := bson.M{
 		"$set": bson.M{

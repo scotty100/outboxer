@@ -1,0 +1,3 @@
+db.outbox.createIndex({_id:1, status:1},{name: '_id_status', unique:true})
+
+db.sequence.update({_id:"outbox"}, {$setOnInsert : {seq:NumberInt(0)}}, { upsert: true})

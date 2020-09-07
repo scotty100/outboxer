@@ -1,6 +1,7 @@
 package outboxer_server
 
 import (
+	"fmt"
 	"golang.org/x/net/context"
 	"io.benefexapps/outboxer/outboxer"
 	"time"
@@ -15,11 +16,11 @@ const MaxRetries = 5
 
 type Poller struct {
 	repo      outboxer.OutboxRepo
-	publisher Publisher
+	publisher *Publisher
 	poll      chan []string
 }
 
-func NewPoller(repo outboxer.OutboxRepo, publisher Publisher, poll chan []string) *Poller {
+func NewPoller(repo outboxer.OutboxRepo, publisher *Publisher, poll chan []string) *Poller {
 	return &Poller{
 		repo:      repo,
 		publisher: publisher,
@@ -42,10 +43,12 @@ func (p *Poller) processItems(statuses []string) {
 	// loop whilst outboxer to process
 	// for each
 	// try to publish and update the message accordingly
+
+	fmt.Println(fmt.Printf("Getting messages ... %s", time.Now().String()))
 	o, err := p.repo.GetNextOutbox(ctx, statuses)
 
 	for err == nil && o.Id != 0 {
-
+		fmt.Println(fmt.Printf("Publishing message ... %s", time.Now().String()))
 		messageId, pubErr := p.publisher.Publish(ctx, o)
 		if pubErr != nil {
 			o.Retries++
@@ -60,5 +63,7 @@ func (p *Poller) processItems(statuses []string) {
 
 		o, err = p.repo.GetNextOutbox(ctx, statuses)
 	}
+
+	time.Sleep(1 * time.Second)
 
 }

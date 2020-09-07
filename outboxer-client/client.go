@@ -12,8 +12,8 @@ type OutboxClient struct {
 	sequenceRepository outboxer.SequenceRepo
 }
 
-func NewOutboxClient(outboxRepository outboxer.OutboxRepo, sequenceRepository outboxer.SequenceRepo) OutboxClient {
-	return OutboxClient{
+func NewOutboxClient(outboxRepository outboxer.OutboxRepo, sequenceRepository outboxer.SequenceRepo) *OutboxClient {
+	return &OutboxClient{
 		outboxRepository:   outboxRepository,
 		sequenceRepository: sequenceRepository}
 }
