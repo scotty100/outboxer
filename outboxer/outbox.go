@@ -4,11 +4,11 @@ import "time"
 
 // Possible outbox states.
 const (
-	Created     = 0
-	Publishing  = 1
-	Published   = 2
-	Error_Retry = 3
-	Error       = 4
+	Created     = "CREATED"
+	Publishing  = "PUBLISHING"
+	Published   = "PUBLISHED"
+	Error_Retry = "ERROR_RETRY"
+	Error       = "ERROR"
 )
 
 type Outbox struct {
@@ -16,7 +16,7 @@ type Outbox struct {
 	CompanyId       string            `json:"companyId"        bson:"companyId"`
 	AggregateType   string            `json:"aggregateType"        bson:"aggregateType"`
 	AggregateId     string            `json:"aggregateId"        bson:"aggregateId"`
-	Status          int               `json:"status"        bson:"status"`
+	Status          string               `json:"status"        bson:"status"`
 	MessageType     string            `json:"messageType"        bson:"messageType"`
 	Topic           string            `json:"topic"        bson:"topic"`
 	Headers         map[string]string `json:"headers"        bson:"headers"`

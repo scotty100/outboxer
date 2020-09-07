@@ -141,13 +141,13 @@
 //		id, err := publisher.Publish(o.Ctx, o)
 //		if err != nil {
 //
-//			or.SetMessageState(o.Ctx, o.Outbox.Id, 2, time.Now(), "")
+//			or.SetMessageProcessed(o.Ctx, o.Outbox.Id, 2, time.Now(), "")
 //
 //			// puiblish the error occurred
 //			w.errCh <- OutboxerError{Err: fmt.Errorf("could not publish event (%s): %s", o.Outbox.Id, err.Error()), Ctx: o.Ctx, Outbox: o.Outbox}
 //		}
 //
-//		or.SetMessageState(o.Ctx, o.Outbox.Id, 3, time.Now(), id)
+//		or.SetMessageProcessed(o.Ctx, o.Outbox.Id, 3, time.Now(), id)
 //	}
 //}
 //

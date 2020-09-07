@@ -11,9 +11,11 @@ import (
 
 type OutboxRepo interface {
 
-	GetNextOutbox(ctx context.Context) (Outbox, error)
+	GetNextOutbox(ctx context.Context, statuses []string) (Outbox, error)
 
-	SetMessageState(ctx context.Context, id string, state int, sentDateTime time.Time, externalMessageId string) error
+	SetMessageProcessed(ctx context.Context, id int64, status string, sentDateTime time.Time, externalMessageId string) error
+
+	SetMessagePublishFailed(ctx context.Context, id int64, status string, retries int) error
 
 	Add(ctx context.Context, outbox Outbox) (Outbox, error)
 }
@@ -52,10 +54,26 @@ func (r *MongoOutboxRepo) GetNextOutbox(ctx context.Context, statuses []string) 
 	return outbox, nil
 }
 
-func (r *MongoOutboxRepo) SetMessageStatus(ctx context.Context, id string, state int, publishedDateTime time.Time, externalMessageId string) error {
+func (r *MongoOutboxRepo) SetMessageProcessed(ctx context.Context, id string, status int, publishedDateTime time.Time, externalMessageId string) error {
 
 	update := bson.M{
-		"$set": bson.M{"status": state, "publishedDate": publishedDateTime, "messageId": externalMessageId},
+		"$set": bson.M{
+			"status": status,
+			"publishedDate": publishedDateTime,
+			"messageId": externalMessageId},
+	}
+
+	_, err := r.Store.Db.Collection(OutboxCollection).UpdateOne(ctx, bson.M{"_id": id}, update, nil)
+
+	return err
+}
+
+func (r *MongoOutboxRepo) SetMessagePublishFailed(ctx context.Context, id string, status string, retries int) error {
+
+	update := bson.M{
+		"$set": bson.M{
+			"status": status,
+			"retries": retries},
 	}
 
 	_, err := r.Store.Db.Collection(OutboxCollection).UpdateOne(ctx, bson.M{"_id": id}, update, nil)

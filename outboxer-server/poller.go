@@ -1,37 +1,64 @@
 package outboxer_server
 
-import "io.benefexapps/outboxer/outboxer"
+import (
+	"golang.org/x/net/context"
+	"io.benefexapps/outboxer/outboxer"
+	"time"
+)
 
-// poller will recieve a call to poll for messages on channel with statues to check for re-processing
+// poller will receive a call to poll for messages on channel with statues to check for re-processing
 // the poller will loop whilst there are messages to process publishing one at a time
 // once no messages are ready to process it will call back on done channel
 
-type Poller struct {
+// move to config
+const MaxRetries = 5
 
-	repo outboxer.OutboxRepo
-	poll chan []string
+type Poller struct {
+	repo      outboxer.OutboxRepo
+	publisher Publisher
+	poll      chan []string
 }
 
-func NewPoller (repo outboxer.OutboxRepo, poll chan []string, done chan<- struct{}) *Poller {
+func NewPoller(repo outboxer.OutboxRepo, publisher Publisher, poll chan []string) *Poller {
 	return &Poller{
-		repo: repo,
-		poll: poll,
+		repo:      repo,
+		publisher: publisher,
+		poll:      poll,
 	}
 }
 
-func  (p *Poller) Run() {
+func (p *Poller) Run() {
 	for {
 		select {
-		case <-p.poll:
-			// run the polling process
+		case statuses := <-p.poll:
+			p.processItems(statuses)
 		}
 	}
 }
 
-func (p *Poller) processItems() {
+func (p *Poller) processItems(statuses []string) {
 
-
+	ctx := context.Background()
 	// loop whilst outboxer to process
-		// for each
-			// try to publish and update the message accordingly
+	// for each
+	// try to publish and update the message accordingly
+	o, err := p.repo.GetNextOutbox(ctx, statuses)
+
+	for err == nil && o.Id != 0 {
+
+		messageId, pubErr := p.publisher.Publish(ctx, o)
+		if pubErr != nil {
+			o.Retries++
+			updatedStatus := outboxer.Error_Retry
+			if o.Retries == MaxRetries {
+				updatedStatus = outboxer.Error
+			}
+			p.repo.SetMessagePublishFailed(ctx, o.Id, updatedStatus, o.Retries)
+		}
+
+		p.repo.SetMessageProcessed(ctx, o.Id, outboxer.Published, time.Now(), messageId)
+
+		o, err = p.repo.GetNextOutbox(ctx, statuses)
+	}
+
 }
