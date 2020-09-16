@@ -1,16 +1,18 @@
-package outboxer_server
+package server
 
 import (
-	"cloud.google.com/go/pubsub"
 	"context"
 	"log"
+
+	"cloud.google.com/go/pubsub"
 )
 
+// PubSubClient google pub sub client
 type PubSubClient struct {
 	Psclient *pubsub.Client
 }
 
-// getClient creates a google-pubsub client
+// GetClient creates a google-pubsub client
 func GetClient(ctx context.Context, projectID string) (*PubSubClient, error) {
 	client, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
@@ -25,7 +27,7 @@ func (client *PubSubClient) topicExists(ctx context.Context, topicName string) (
 	return topic.Exists(ctx)
 }
 
-// createTopic creates a topic if a topic name does not exist or returns one
+// GetOrCreateTopic creates a topic if a topic name does not exist or returns one
 // if it is already present
 func (client *PubSubClient) GetOrCreateTopic(ctx context.Context, topicName string) (*pubsub.Topic, error) {
 	topicExists, err := client.topicExists(ctx, topicName)
@@ -47,4 +49,3 @@ func (client *PubSubClient) GetOrCreateTopic(ctx context.Context, topicName stri
 
 	return topic, nil
 }
-

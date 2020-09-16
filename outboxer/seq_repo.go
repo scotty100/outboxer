@@ -2,24 +2,29 @@ package outboxer
 
 import (
 	"context"
+	"time"
+
 	utlmongo "github.com/BenefexLtd/onehub-go-base/pkg/mongo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
 )
 
+// Sequence repository
 type SequenceRepo interface {
-	GetNextId(ctx context.Context, id string) (Sequence, error)
+	GetNextID(ctx context.Context, id string) (Sequence, error)
 }
 
+// sequence mongo collection name
 const SequenceCollection = "sequence"
 
+// Mongo sequence repository implementation
 type MongoSeqRepo struct {
 	Store        *utlmongo.Datastore
 	QueryMaxTime int
 }
 
-func (r *MongoSeqRepo) GetNextId(ctx context.Context, id string) (Sequence, error) {
+// Get next sequence id for a provided app id
+func (r *MongoSeqRepo) GetNextID(ctx context.Context, id string) (Sequence, error) {
 	queryMaxTime := time.Duration(r.QueryMaxTime) * time.Second
 	after := options.After
 	options := &options.FindOneAndUpdateOptions{

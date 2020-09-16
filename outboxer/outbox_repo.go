@@ -2,24 +2,31 @@ package outboxer
 
 import (
 	"context"
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
 
 	utlmongo "github.com/BenefexLtd/onehub-go-base/pkg/mongo"
 )
 
+// Outbox repository interface
 type OutboxRepo interface {
 
+	// get the next outbox entry with a status matching the specified statuses
 	GetNextOutbox(ctx context.Context, statuses []string) (Outbox, error)
 
-	SetMessageProcessed(ctx context.Context, id int64, status string, publishedDateTime time.Time, externalMessageId string) error
+	// set an outbox record as published
+	SetMessageProcessed(ctx context.Context, id int64, status string, publishedDateTime time.Time, externalMessageID string) error
 
+	// set an outbox record as failed
 	SetMessagePublishFailed(ctx context.Context, id int64, status string, retries int) error
 
+	// add a new outbox record
 	Add(ctx context.Context, outbox Outbox) (Outbox, error)
 }
 
+// outbox mongo collection name
 const OutboxCollection = "outbox"
 
 type MongoOutboxRepo struct {
@@ -54,13 +61,13 @@ func (r *MongoOutboxRepo) GetNextOutbox(ctx context.Context, statuses []string) 
 	return outbox, nil
 }
 
-func (r *MongoOutboxRepo) SetMessageProcessed(ctx context.Context, id int64, status string, publishedDateTime time.Time, externalMessageId string) error {
+func (r *MongoOutboxRepo) SetMessageProcessed(ctx context.Context, id int64, status string, publishedDateTime time.Time, externalMessageID string) error {
 
 	update := bson.M{
 		"$set": bson.M{
-			"status": status,
+			"status":        status,
 			"publishedDate": publishedDateTime,
-			"messageId": externalMessageId},
+			"messageId":     externalMessageID},
 	}
 
 	_, err := r.Store.Db.Collection(OutboxCollection).UpdateOne(ctx, bson.M{"_id": id}, update, nil)
@@ -72,7 +79,7 @@ func (r *MongoOutboxRepo) SetMessagePublishFailed(ctx context.Context, id int64,
 
 	update := bson.M{
 		"$set": bson.M{
-			"status": status,
+			"status":  status,
 			"retries": retries},
 	}
 

@@ -1,6 +1,7 @@
 package outboxer
 
+// Sequence struct to control id sequence for an app
 type Sequence struct {
-	Id string
+	ID  string
 	Seq int64
 }
